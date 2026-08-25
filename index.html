@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ASOBI TICKET Start Gate</title>
+<style>
+*{box-sizing:border-box}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  max-width:760px;margin:0 auto;padding:18px;line-height:1.5;
+  background:#f6f6f7;color:#111
+}
+h1{font-size:22px;margin:0 0 4px}
+.sub{font-size:13px;color:#666;margin-bottom:16px}
+.card{
+  background:#fff;border:1px solid #ddd;border-radius:14px;
+  padding:15px;margin:12px 0
+}
+label{display:block;font-size:13px;font-weight:700;margin-top:9px}
+input{
+  width:100%;font-size:16px;padding:12px;margin-top:4px;
+  border:1px solid #aaa;border-radius:9px;background:#fff;color:#111
+}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:560px){.grid{grid-template-columns:1fr}}
+.clock{
+  font-size:36px;font-weight:800;text-align:center;
+  font-variant-numeric:tabular-nums;letter-spacing:.01em
+}
+.countdown{
+  text-align:center;font-size:17px;font-weight:700;margin-top:5px
+}
+.state{
+  text-align:center;margin-top:8px;font-size:13px;color:#666
+}
+#gate{
+  width:100%;min-height:108px;border:0;border-radius:16px;
+  font-size:24px;font-weight:900;padding:18px;margin-top:12px;
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+}
+#gate.locked{
+  background:#d5d5d8;color:#777;
+}
+#gate.ready{
+  background:#1473e6;color:white;
+}
+#gate.used{
+  background:#35a853;color:white;
+}
+button.small{
+  width:100%;font-size:15px;font-weight:700;padding:12px;
+  border:1px solid #999;border-radius:10px;background:#fff;color:#111;
+  min-height:46px;margin-top:8px
+}
+.url{
+  font-size:11px;color:#777;word-break:break-all;margin-top:8px
+}
+.note{font-size:12px;color:#666}
+.status{
+  min-height:20px;text-align:center;font-size:13px;font-weight:700;margin-top:8px
+}
+</style>
+</head>
+<body>
+
+<h1>ASOBI TICKET Start Gate</h1>
+<div class="sub">開始前のタップはすべて無視し、設定時刻以降の最初のタップだけでURLを開きます。</div>
+
+<section class="card">
+  <div id="clock" class="clock">--:--:--.---</div>
+  <div id="countdown" class="countdown">開始日時を設定してください</div>
+  <div id="state" class="state">LOCKED</div>
+</section>
+
+<section class="card">
+  <label>開くURL</label>
+  <input id="url" type="url" autocomplete="off"
+    placeholder="https://asobiticket2.asobistore.jp/entry/.../choice?actId=...">
+
+  <div class="grid">
+    <div>
+      <label>開始日</label>
+      <input id="date" type="date">
+    </div>
+    <div>
+      <label>開始時刻</label>
+      <input id="time" type="time" step="0.001" value="12:00:00.000">
+    </div>
+  </div>
+
+  <button id="save" class="small" type="button">設定を保存</button>
+  <div id="savedUrl" class="url"></div>
+</section>
+
+<section class="card">
+  <button id="gate" class="locked" type="button" disabled>
+    開始時刻までロック
+  </button>
+  <div id="status" class="status"></div>
+</section>
+
+<section class="card note">
+  <b>動作：</b>開始前はボタン自体をdisabledにするため、連打してもクリック処理は発生しません。
+  開始時刻に達したフレームで有効化し、その後の最初のタップで同じタブ内に遷移します。
+  このツールは自動リロード・自動アクセス・自動申込を行いません。判定時刻は端末の時計を使用します。
+</section>
+
+<script>
+(function(){
+  "use strict";
+
+  const KEY = "asobi_start_gate_v1";
+  const $ = id => document.getElementById(id);
+
+  let targetMs = null;
+  let armed = false;
+  let navigating = false;
+  let lastState = "";
+
+  function pad(n,w=2){ return String(n).padStart(w,"0"); }
+
+  function localDateString(d){
+    return [
+      d.getFullYear(),
+      pad(d.getMonth()+1),
+      pad(d.getDate())
+    ].join("-");
+  }
+
+  function load(){
+    try{
+      const d = JSON.parse(localStorage.getItem(KEY) || "null");
+      if(d){
+        $("url").value = d.url || "";
+        $("date").value = d.date || "";
+        $("time").value = d.time || "12:00:00.000";
+        return;
+      }
+    }catch(_){}
+
+    const now = new Date();
+    $("date").value = localDateString(now);
+    $("time").value = "12:00:00.000";
+  }
+
+  function save(){
+    try{
+      localStorage.setItem(KEY, JSON.stringify({
+        url:$("url").value.trim(),
+        date:$("date").value,
+        time:$("time").value
+      }));
+    }catch(_){}
+  }
+
+  function parseTarget(){
+    const d = $("date").value;
+    let t = $("time").value || "12:00:00.000";
+
+    if(!d){
+      targetMs = null;
+      return false;
+    }
+
+    // iOSがミリ秒を落とした場合にも対応
+    if(/^\d{2}:\d{2}$/.test(t)) t += ":00";
+    const x = new Date(d + "T" + t);
+
+    if(Number.isNaN(x.getTime())){
+      targetMs = null;
+      return false;
+    }
+
+    targetMs = x.getTime();
+    return true;
+  }
+
+  function updateUrlText(){
+    $("savedUrl").textContent = $("url").value.trim() || "URL未設定";
+  }
+
+  function arm(){
+    const gate = $("gate");
+
+    if(!armed){
+      armed = true;
+      gate.disabled = false;
+      gate.className = "ready";
+      gate.textContent = "今すぐ開く";
+      $("state").textContent = "READY";
+      $("status").textContent = "開始時刻になりました";
+    }
+  }
+
+  function lock(){
+    const gate = $("gate");
+    armed = false;
+    navigating = false;
+    gate.disabled = true;
+    gate.className = "locked";
+    gate.textContent = "開始時刻までロック";
+    $("state").textContent = "LOCKED";
+  }
+
+  function navigate(){
+    if(navigating) return;
+    if(!targetMs) return;
+
+    // ボタン有効化後でも、クリック時にもう一度絶対時刻を検証
+    if(Date.now() < targetMs) return;
+
+    const url = $("url").value.trim();
+    if(!/^https:\/\/asobiticket2\.asobistore\.jp\//i.test(url)){
+      $("status").textContent = "ASOBI TICKETのURLを設定してください";
+      return;
+    }
+
+    navigating = true;
+    const gate = $("gate");
+    gate.disabled = true;
+    gate.className = "used";
+    gate.textContent = "アクセス中…";
+    $("status").textContent = "URLを開きます";
+
+    // ユーザーのクリックイベント内でのみ遷移
+    window.location.assign(url);
+  }
+
+  $("gate").addEventListener("click", navigate);
+
+  $("save").addEventListener("click", function(){
+    if(!parseTarget()){
+      $("status").textContent = "開始日時を確認してください";
+      return;
+    }
+
+    save();
+    updateUrlText();
+
+    if(Date.now() < targetMs){
+      lock();
+      $("status").textContent = "設定を保存しました";
+    }else{
+      arm();
+      $("status").textContent = "設定時刻を過ぎています";
+    }
+  });
+
+  ["url","date","time"].forEach(id => {
+    $(id).addEventListener("input", function(){
+      parseTarget();
+      save();
+      updateUrlText();
+      if(targetMs && Date.now() >= targetMs) arm();
+      else lock();
+    });
+  });
+
+  function frame(){
+    const now = new Date();
+    const nowMs = now.getTime();
+
+    $("clock").textContent =
+      pad(now.getHours()) + ":" +
+      pad(now.getMinutes()) + ":" +
+      pad(now.getSeconds()) + "." +
+      pad(now.getMilliseconds(),3);
+
+    if(!targetMs){
+      $("countdown").textContent = "開始日時を設定してください";
+      if(lastState !== "none"){
+        lock();
+        lastState = "none";
+      }
+      requestAnimationFrame(frame);
+      return;
+    }
+
+    const diff = targetMs - nowMs;
+
+    if(diff > 0){
+      if(lastState !== "locked"){
+        lock();
+        lastState = "locked";
+      }
+
+      if(diff < 10000){
+        $("countdown").textContent = "開始まで " + (diff/1000).toFixed(3) + " 秒";
+      }else if(diff < 60000){
+        $("countdown").textContent = "開始まで " + (diff/1000).toFixed(2) + " 秒";
+      }else{
+        const sec = Math.floor(diff/1000);
+        const h = Math.floor(sec/3600);
+        const m = Math.floor((sec%3600)/60);
+        const s = sec%60;
+        $("countdown").textContent =
+          "開始まで " + (h ? h+"時間 " : "") + m+"分 "+s+"秒";
+      }
+    }else{
+      if(lastState !== "ready"){
+        arm();
+        lastState = "ready";
+      }
+      $("countdown").textContent =
+        "開始済み +" + Math.abs(diff/1000).toFixed(3) + " 秒";
+    }
+
+    requestAnimationFrame(frame);
+  }
+
+  load();
+  parseTarget();
+  updateUrlText();
+
+  if(targetMs && Date.now() >= targetMs) arm();
+  else lock();
+
+  requestAnimationFrame(frame);
+})();
+</script>
+
+</body>
+</html>
