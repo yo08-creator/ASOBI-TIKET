@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>ASOBI TICKET Start Gate</title>
+<link rel="dns-prefetch" href="//asobiticket2.asobistore.jp">
+<link rel="preconnect" href="https://asobiticket2.asobistore.jp" crossorigin>
 <style>
 *{box-sizing:border-box}
 html,body{touch-action:manipulation}
@@ -67,7 +69,7 @@ button.small{
 <body>
 
 <h1>ASOBI TICKET Start Gate</h1>
-<div class="sub">開始前のタップはすべて無視し、設定時刻以降の最初のタップだけでURLを開きます。</div>
+<div class="sub">設定時刻に達した瞬間に、指定したASOBI TICKET URLへ自動アクセスします。</div>
 
 <section class="card">
   <div id="clock" class="clock">--:--:--.---</div>
@@ -97,15 +99,15 @@ button.small{
 
 <section class="card">
   <button id="gate" class="locked" type="button" disabled>
-    開始時刻までロック
+    自動アクセス待機中
   </button>
   <div id="status" class="status"></div>
 </section>
 
 <section class="card note">
-  <b>動作：</b>開始前はボタン自体をdisabledにするため、連打してもクリック処理は発生しません。
-  開始時刻に達したフレームで有効化し、その後の最初のタップで同じタブ内に遷移します。
-  このツールは自動リロード・自動アクセス・自動申込を行いません。判定時刻は端末の時計を使用します。
+  <b>動作：</b>開始時刻までは待機し、設定時刻に達した瞬間に指定URLへ自動遷移します。
+  手動ボタン操作は不要です。自動リロード・申込画面内の自動選択・自動申込は行いません。
+  判定時刻は端末の時計を使用します。Safariを前面表示したまま利用してください。
 </section>
 
 <script>
@@ -119,6 +121,7 @@ button.small{
   let armed = false;
   let navigating = false;
   let lastState = "";
+  let autoTriggered = false;
 
   function pad(n,w=2){ return String(n).padStart(w,"0"); }
 
@@ -187,10 +190,10 @@ button.small{
 
     if(!armed){
       armed = true;
-      gate.disabled = false;
+      gate.disabled = true;
       gate.className = "ready";
-      gate.textContent = "今すぐ開く";
-      $("state").textContent = "READY";
+      gate.textContent = "自動アクセス開始";
+      $("state").textContent = "GO";
       $("status").textContent = "開始時刻になりました";
     }
   }
@@ -201,15 +204,15 @@ button.small{
     navigating = false;
     gate.disabled = true;
     gate.className = "locked";
-    gate.textContent = "開始時刻までロック";
-    $("state").textContent = "LOCKED";
+    gate.textContent = "自動アクセス待機中";
+    $("state").textContent = "WAITING";
   }
 
   function navigate(){
-    if(navigating) return;
+    if(navigating || autoTriggered) return;
     if(!targetMs) return;
 
-    // ボタン有効化後でも、クリック時にもう一度絶対時刻を検証
+    // 実行直前に絶対時刻を再検証
     if(Date.now() < targetMs) return;
 
     const url = $("url").value.trim();
@@ -219,6 +222,7 @@ button.small{
     }
 
     navigating = true;
+    autoTriggered = true;
     const gate = $("gate");
     gate.disabled = true;
     gate.className = "used";
@@ -229,7 +233,6 @@ button.small{
     window.location.assign(url);
   }
 
-  $("gate").addEventListener("click", navigate);
 
   $("save").addEventListener("click", function(){
     if(!parseTarget()){
@@ -239,6 +242,8 @@ button.small{
 
     save();
     updateUrlText();
+    autoTriggered = false;
+    navigating = false;
 
     if(Date.now() < targetMs){
       lock();
@@ -254,6 +259,8 @@ button.small{
       parseTarget();
       save();
       updateUrlText();
+      autoTriggered = false;
+      navigating = false;
       if(targetMs && Date.now() >= targetMs) arm();
       else lock();
     });
@@ -306,6 +313,10 @@ button.small{
       }
       $("countdown").textContent =
         "開始済み +" + Math.abs(diff/1000).toFixed(3) + " 秒";
+
+      if(!autoTriggered && !navigating){
+        navigate();
+      }
     }
 
     requestAnimationFrame(frame);
