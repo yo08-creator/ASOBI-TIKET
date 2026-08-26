@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>ASOBI TICKET Start Gate</title>
+<title>ASOBI TICKET Start Gate v3 MARGIN</title>
 <link rel="dns-prefetch" href="//asobiticket2.asobistore.jp">
 <link rel="preconnect" href="https://asobiticket2.asobistore.jp" crossorigin>
 <style>
@@ -21,7 +21,7 @@ h1{font-size:22px;margin:0 0 4px}
   padding:15px;margin:12px 0
 }
 label{display:block;font-size:13px;font-weight:700;margin-top:9px}
-input{
+input,select{
   width:100%;font-size:16px;padding:12px;margin-top:4px;
   border:1px solid #aaa;border-radius:9px;background:#fff;color:#111
 }
@@ -68,8 +68,8 @@ button.small{
 </head>
 <body>
 
-<h1>ASOBI TICKET Start Gate</h1>
-<div class="sub">設定時刻に達した瞬間に、指定したASOBI TICKET URLへ自動アクセスします。</div>
+<h1>ASOBI TICKET Start Gate v3 MARGIN</h1>
+<div class="sub">設定時刻＋安全マージンに達した瞬間に、指定したASOBI TICKET URLへ自動アクセスします。</div>
 
 <section class="card">
   <div id="clock" class="clock">--:--:--.---</div>
@@ -93,6 +93,17 @@ button.small{
     </div>
   </div>
 
+  <label>安全マージン</label>
+  <select id="margin">
+    <option value="0">0 ms（設定時刻ぴったり）</option>
+    <option value="50">+50 ms</option>
+    <option value="100" selected>+100 ms</option>
+    <option value="150">+150 ms</option>
+    <option value="200">+200 ms</option>
+    <option value="300">+300 ms</option>
+    <option value="500">+500 ms</option>
+  </select>
+
   <button id="save" class="small" type="button">設定を保存</button>
   <div id="savedUrl" class="url"></div>
 </section>
@@ -105,16 +116,16 @@ button.small{
 </section>
 
 <section class="card note">
-  <b>動作：</b>開始時刻までは待機し、設定時刻に達した瞬間に指定URLへ自動遷移します。
+  <b>動作：</b>開始時刻＋安全マージンまでは待機し、その時刻に達した瞬間に指定URLへ自動遷移します。
   手動ボタン操作は不要です。自動リロード・申込画面内の自動選択・自動申込は行いません。
-  判定時刻は端末の時計を使用します。Safariを前面表示したまま利用してください。
+  判定時刻は端末の時計を使用します。安全マージンは設定時刻に加算されます（例：12:00:00.000 ＋100ms → 12:00:00.100）。Safariを前面表示したまま利用してください。
 </section>
 
 <script>
 (function(){
   "use strict";
 
-  const KEY = "asobi_start_gate_v1";
+  const KEY = "asobi_start_gate_v3_margin";
   const $ = id => document.getElementById(id);
 
   let targetMs = null;
@@ -135,11 +146,15 @@ button.small{
 
   function load(){
     try{
-      const d = JSON.parse(localStorage.getItem(KEY) || "null");
+      let d = JSON.parse(localStorage.getItem(KEY) || "null");
+      if(!d){
+        d = JSON.parse(localStorage.getItem("asobi_start_gate_v1") || "null");
+      }
       if(d){
         $("url").value = d.url || "";
         $("date").value = d.date || "";
         $("time").value = d.time || "12:00:00.000";
+        $("margin").value = String(d.margin ?? 100);
         return;
       }
     }catch(_){}
@@ -147,6 +162,7 @@ button.small{
     const now = new Date();
     $("date").value = localDateString(now);
     $("time").value = "12:00:00.000";
+    $("margin").value = "100";
   }
 
   function save(){
@@ -154,7 +170,8 @@ button.small{
       localStorage.setItem(KEY, JSON.stringify({
         url:$("url").value.trim(),
         date:$("date").value,
-        time:$("time").value
+        time:$("time").value,
+        margin:Number($("margin").value || 0)
       }));
     }catch(_){}
   }
@@ -177,12 +194,15 @@ button.small{
       return false;
     }
 
-    targetMs = x.getTime();
+    const marginMs = Number($("margin").value || 0);
+    targetMs = x.getTime() + marginMs;
     return true;
   }
 
   function updateUrlText(){
-    $("savedUrl").textContent = $("url").value.trim() || "URL未設定";
+    const url = $("url").value.trim() || "URL未設定";
+    const margin = Number($("margin").value || 0);
+    $("savedUrl").textContent = url + " / 安全マージン +" + margin + "ms";
   }
 
   function arm(){
@@ -254,7 +274,7 @@ button.small{
     }
   });
 
-  ["url","date","time"].forEach(id => {
+  ["url","date","time","margin"].forEach(id => {
     $(id).addEventListener("input", function(){
       parseTarget();
       save();
