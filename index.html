@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>ASOBI TICKET Start Gate v2 SPEED</title>
+<title>ASOBI TICKET Start Gate</title>
 <link rel="dns-prefetch" href="//asobiticket2.asobistore.jp">
 <link rel="preconnect" href="https://asobiticket2.asobistore.jp" crossorigin>
 <style>
@@ -16,7 +16,10 @@ body{
 }
 h1{font-size:22px;margin:0 0 4px}
 .sub{font-size:13px;color:#666;margin-bottom:16px}
-.card{background:#fff;border:1px solid #ddd;border-radius:14px;padding:15px;margin:12px 0}
+.card{
+  background:#fff;border:1px solid #ddd;border-radius:14px;
+  padding:15px;margin:12px 0
+}
 label{display:block;font-size:13px;font-weight:700;margin-top:9px}
 input{
   width:100%;font-size:16px;padding:12px;margin-top:4px;
@@ -24,35 +27,54 @@ input{
 }
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 @media(max-width:560px){.grid{grid-template-columns:1fr}}
-.clock{font-size:36px;font-weight:800;text-align:center;font-variant-numeric:tabular-nums}
-.countdown{text-align:center;font-size:17px;font-weight:700;margin-top:5px}
-.state{text-align:center;margin-top:8px;font-size:13px;color:#666}
+.clock{
+  font-size:36px;font-weight:800;text-align:center;
+  font-variant-numeric:tabular-nums;letter-spacing:.01em
+}
+.countdown{
+  text-align:center;font-size:17px;font-weight:700;margin-top:5px
+}
+.state{
+  text-align:center;margin-top:8px;font-size:13px;color:#666
+}
 #gate{
   width:100%;min-height:108px;border:0;border-radius:16px;
   font-size:24px;font-weight:900;padding:18px;margin-top:12px;
-  touch-action:manipulation;-webkit-tap-highlight-color:transparent;
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
 }
-#gate.locked{background:#d5d5d8;color:#777}
-#gate.ready{background:#1473e6;color:white}
-#gate.used{background:#35a853;color:white}
+#gate.locked{
+  background:#d5d5d8;color:#777;
+}
+#gate.ready{
+  background:#1473e6;color:white;
+}
+#gate.used{
+  background:#35a853;color:white;
+}
 button.small{
   width:100%;font-size:15px;font-weight:700;padding:12px;
   border:1px solid #999;border-radius:10px;background:#fff;color:#111;
   min-height:46px;margin-top:8px
 }
-.url{font-size:11px;color:#777;word-break:break-all;margin-top:8px}
+.url{
+  font-size:11px;color:#777;word-break:break-all;margin-top:8px
+}
 .note{font-size:12px;color:#666}
-.status{min-height:20px;text-align:center;font-size:13px;font-weight:700;margin-top:8px}
+.status{
+  min-height:20px;text-align:center;font-size:13px;font-weight:700;margin-top:8px
+}
 </style>
 </head>
 <body>
-<h1>ASOBI TICKET Start Gate v2 SPEED</h1>
-<div class="sub">開始1秒前から表示更新を止め、時刻到達判定を最優先にして指定URLへ自動アクセスします。</div>
+
+<h1>ASOBI TICKET Start Gate</h1>
+<div class="sub">設定時刻に達した瞬間に、指定したASOBI TICKET URLへ自動アクセスします。</div>
 
 <section class="card">
   <div id="clock" class="clock">--:--:--.---</div>
   <div id="countdown" class="countdown">開始日時を設定してください</div>
-  <div id="state" class="state">WAITING</div>
+  <div id="state" class="state">LOCKED</div>
 </section>
 
 <section class="card">
@@ -76,36 +98,39 @@ button.small{
 </section>
 
 <section class="card">
-  <button id="gate" class="locked" type="button" disabled>自動アクセス待機中</button>
+  <button id="gate" class="locked" type="button" disabled>
+    自動アクセス待機中
+  </button>
   <div id="status" class="status"></div>
 </section>
 
 <section class="card note">
-  <b>速度優先モード：</b>通常時は時計を表示し、開始1秒前から時計・カウントダウンの更新を停止します。
-  その後は短いタイマーで時刻だけを監視し、到達後すぐに指定URLへ遷移します。
-  自動リロード・申込画面内の自動選択・自動申込は行いません。
-  Safariを前面表示したまま利用してください。
+  <b>動作：</b>開始時刻までは待機し、設定時刻に達した瞬間に指定URLへ自動遷移します。
+  手動ボタン操作は不要です。自動リロード・申込画面内の自動選択・自動申込は行いません。
+  判定時刻は端末の時計を使用します。Safariを前面表示したまま利用してください。
 </section>
 
 <script>
 (function(){
   "use strict";
 
-  const KEY = "asobi_start_gate_v2_speed";
+  const KEY = "asobi_start_gate_v1";
   const $ = id => document.getElementById(id);
 
   let targetMs = null;
+  let armed = false;
   let navigating = false;
+  let lastState = "";
   let autoTriggered = false;
-  let rafId = null;
-  let wakeTimer = null;
-  let spinTimer = null;
-  let fastMode = false;
 
   function pad(n,w=2){ return String(n).padStart(w,"0"); }
 
   function localDateString(d){
-    return [d.getFullYear(),pad(d.getMonth()+1),pad(d.getDate())].join("-");
+    return [
+      d.getFullYear(),
+      pad(d.getMonth()+1),
+      pad(d.getDate())
+    ].join("-");
   }
 
   function load(){
@@ -118,6 +143,7 @@ button.small{
         return;
       }
     }catch(_){}
+
     const now = new Date();
     $("date").value = localDateString(now);
     $("time").value = "12:00:00.000";
@@ -136,10 +162,21 @@ button.small{
   function parseTarget(){
     const d = $("date").value;
     let t = $("time").value || "12:00:00.000";
-    if(!d){ targetMs = null; return false; }
+
+    if(!d){
+      targetMs = null;
+      return false;
+    }
+
+    // iOSがミリ秒を落とした場合にも対応
     if(/^\d{2}:\d{2}$/.test(t)) t += ":00";
     const x = new Date(d + "T" + t);
-    if(Number.isNaN(x.getTime())){ targetMs = null; return false; }
+
+    if(Number.isNaN(x.getTime())){
+      targetMs = null;
+      return false;
+    }
+
     targetMs = x.getTime();
     return true;
   }
@@ -148,22 +185,34 @@ button.small{
     $("savedUrl").textContent = $("url").value.trim() || "URL未設定";
   }
 
-  function setWaiting(){
-    $("gate").disabled = true;
-    $("gate").className = "locked";
-    $("gate").textContent = "自動アクセス待機中";
+  function arm(){
+    const gate = $("gate");
+
+    if(!armed){
+      armed = true;
+      gate.disabled = true;
+      gate.className = "ready";
+      gate.textContent = "自動アクセス開始";
+      $("state").textContent = "GO";
+      $("status").textContent = "開始時刻になりました";
+    }
+  }
+
+  function lock(){
+    const gate = $("gate");
+    armed = false;
+    navigating = false;
+    gate.disabled = true;
+    gate.className = "locked";
+    gate.textContent = "自動アクセス待機中";
     $("state").textContent = "WAITING";
   }
 
-  function setArmed(){
-    $("gate").disabled = true;
-    $("gate").className = "ready";
-    $("gate").textContent = "SPEED MODE";
-    $("state").textContent = "ARMED";
-  }
-
   function navigate(){
-    if(navigating || autoTriggered || !targetMs) return;
+    if(navigating || autoTriggered) return;
+    if(!targetMs) return;
+
+    // 実行直前に絶対時刻を再検証
     if(Date.now() < targetMs) return;
 
     const url = $("url").value.trim();
@@ -174,124 +223,35 @@ button.small{
 
     navigating = true;
     autoTriggered = true;
-    $("gate").className = "used";
-    $("gate").textContent = "アクセス中…";
-    $("state").textContent = "GO";
+    const gate = $("gate");
+    gate.disabled = true;
+    gate.className = "used";
+    gate.textContent = "アクセス中…";
     $("status").textContent = "URLを開きます";
 
-    window.location.replace(url);
+    // ユーザーのクリックイベント内でのみ遷移
+    window.location.assign(url);
   }
 
-  function clearSchedulers(){
-    if(rafId){ cancelAnimationFrame(rafId); rafId = null; }
-    if(wakeTimer){ clearTimeout(wakeTimer); wakeTimer = null; }
-    if(spinTimer){ clearTimeout(spinTimer); spinTimer = null; }
-  }
-
-  function renderNormal(){
-    if(fastMode) return;
-
-    const now = new Date();
-    const remaining = targetMs ? targetMs - now.getTime() : null;
-
-    $("clock").textContent =
-      pad(now.getHours()) + ":" +
-      pad(now.getMinutes()) + ":" +
-      pad(now.getSeconds()) + "." +
-      pad(now.getMilliseconds(),3);
-
-    if(targetMs === null){
-      $("countdown").textContent = "開始日時を設定してください";
-      rafId = requestAnimationFrame(renderNormal);
-      return;
-    }
-
-    if(remaining <= 1000){
-      enterFastMode();
-      return;
-    }
-
-    if(remaining < 10000){
-      $("countdown").textContent = "開始まで " + (remaining/1000).toFixed(3) + " 秒";
-    }else if(remaining < 60000){
-      $("countdown").textContent = "開始まで " + (remaining/1000).toFixed(2) + " 秒";
-    }else{
-      const sec = Math.floor(remaining/1000);
-      const h = Math.floor(sec/3600);
-      const m = Math.floor((sec%3600)/60);
-      const s = sec%60;
-      $("countdown").textContent =
-        "開始まで " + (h ? h+"時間 " : "") + m+"分 "+s+"秒";
-    }
-
-    rafId = requestAnimationFrame(renderNormal);
-  }
-
-  function enterFastMode(){
-    if(fastMode) return;
-    fastMode = true;
-
-    if(rafId){ cancelAnimationFrame(rafId); rafId = null; }
-    if(wakeTimer){ clearTimeout(wakeTimer); wakeTimer = null; }
-
-    setArmed();
-    $("countdown").textContent = "開始直前 — SPEED MODE";
-    fastTick();
-  }
-
-  function fastTick(){
-    if(autoTriggered || navigating || targetMs === null) return;
-
-    const remaining = targetMs - Date.now();
-
-    if(remaining <= 0){
-      navigate();
-      return;
-    }
-
-    // Safariのタイマークランプを考慮しつつ、開始直前だけ短い間隔にする。
-    let delay = 8;
-    if(remaining <= 100) delay = 4;
-    if(remaining <= 30) delay = 1;
-
-    spinTimer = setTimeout(fastTick, delay);
-  }
-
-  function schedule(){
-    clearSchedulers();
-    fastMode = false;
-    navigating = false;
-    autoTriggered = false;
-
-    if(targetMs === null){
-      setWaiting();
-      rafId = requestAnimationFrame(renderNormal);
-      return;
-    }
-
-    const remaining = targetMs - Date.now();
-
-    if(remaining <= 1000){
-      enterFastMode();
-      return;
-    }
-
-    setWaiting();
-
-    // 1秒前の切替をタイマーで予約しつつ、通常表示はrAFで更新。
-    wakeTimer = setTimeout(enterFastMode, Math.max(0, remaining - 1000));
-    rafId = requestAnimationFrame(renderNormal);
-  }
 
   $("save").addEventListener("click", function(){
     if(!parseTarget()){
       $("status").textContent = "開始日時を確認してください";
       return;
     }
+
     save();
     updateUrlText();
-    $("status").textContent = "設定を保存しました";
-    schedule();
+    autoTriggered = false;
+    navigating = false;
+
+    if(Date.now() < targetMs){
+      lock();
+      $("status").textContent = "設定を保存しました";
+    }else{
+      arm();
+      $("status").textContent = "設定時刻を過ぎています";
+    }
   });
 
   ["url","date","time"].forEach(id => {
@@ -299,15 +259,79 @@ button.small{
       parseTarget();
       save();
       updateUrlText();
-      schedule();
+      autoTriggered = false;
+      navigating = false;
+      if(targetMs && Date.now() >= targetMs) arm();
+      else lock();
     });
   });
+
+  function frame(){
+    const now = new Date();
+    const nowMs = now.getTime();
+
+    $("clock").textContent =
+      pad(now.getHours()) + ":" +
+      pad(now.getMinutes()) + ":" +
+      pad(now.getSeconds()) + "." +
+      pad(now.getMilliseconds(),3);
+
+    if(!targetMs){
+      $("countdown").textContent = "開始日時を設定してください";
+      if(lastState !== "none"){
+        lock();
+        lastState = "none";
+      }
+      requestAnimationFrame(frame);
+      return;
+    }
+
+    const diff = targetMs - nowMs;
+
+    if(diff > 0){
+      if(lastState !== "locked"){
+        lock();
+        lastState = "locked";
+      }
+
+      if(diff < 10000){
+        $("countdown").textContent = "開始まで " + (diff/1000).toFixed(3) + " 秒";
+      }else if(diff < 60000){
+        $("countdown").textContent = "開始まで " + (diff/1000).toFixed(2) + " 秒";
+      }else{
+        const sec = Math.floor(diff/1000);
+        const h = Math.floor(sec/3600);
+        const m = Math.floor((sec%3600)/60);
+        const s = sec%60;
+        $("countdown").textContent =
+          "開始まで " + (h ? h+"時間 " : "") + m+"分 "+s+"秒";
+      }
+    }else{
+      if(lastState !== "ready"){
+        arm();
+        lastState = "ready";
+      }
+      $("countdown").textContent =
+        "開始済み +" + Math.abs(diff/1000).toFixed(3) + " 秒";
+
+      if(!autoTriggered && !navigating){
+        navigate();
+      }
+    }
+
+    requestAnimationFrame(frame);
+  }
 
   load();
   parseTarget();
   updateUrlText();
-  schedule();
+
+  if(targetMs && Date.now() >= targetMs) arm();
+  else lock();
+
+  requestAnimationFrame(frame);
 })();
 </script>
+
 </body>
 </html>
