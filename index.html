@@ -2,354 +2,1490 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>ASOBI TICKET Start Gate v3 MARGIN</title>
-<link rel="dns-prefetch" href="//asobiticket2.asobistore.jp">
-<link rel="preconnect" href="https://asobiticket2.asobistore.jp" crossorigin>
+
+<meta
+  name="viewport"
+  content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"
+>
+
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+<title>ASOBI TICKET Start Gate v2</title>
+
+<!-- ASOBI TICKETへの接続準備 -->
+<link
+  rel="dns-prefetch"
+  href="//asobiticket2.asobistore.jp"
+>
+
+<link
+  rel="preconnect"
+  href="https://asobiticket2.asobistore.jp"
+  crossorigin
+>
+
 <style>
-*{box-sizing:border-box}
-html,body{touch-action:manipulation}
-body{
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-  max-width:760px;margin:0 auto;padding:18px;line-height:1.5;
-  background:#f6f6f7;color:#111
+* {
+  box-sizing: border-box;
 }
-h1{font-size:22px;margin:0 0 4px}
-.sub{font-size:13px;color:#666;margin-bottom:16px}
-.card{
-  background:#fff;border:1px solid #ddd;border-radius:14px;
-  padding:15px;margin:12px 0
+
+html,
+body {
+  touch-action: manipulation;
+  -webkit-text-size-adjust: 100%;
 }
-label{display:block;font-size:13px;font-weight:700;margin-top:9px}
-input,select{
-  width:100%;font-size:16px;padding:12px;margin-top:4px;
-  border:1px solid #aaa;border-radius:9px;background:#fff;color:#111
+
+body {
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+
+  max-width: 760px;
+  margin: 0 auto;
+
+  padding:
+    max(18px, env(safe-area-inset-top))
+    18px
+    max(24px, env(safe-area-inset-bottom));
+
+  line-height: 1.5;
+
+  background: #f6f6f7;
+  color: #111;
 }
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-@media(max-width:560px){.grid{grid-template-columns:1fr}}
-.clock{
-  font-size:36px;font-weight:800;text-align:center;
-  font-variant-numeric:tabular-nums;letter-spacing:.01em
+
+h1 {
+  font-size: 22px;
+  margin: 0 0 4px;
 }
-.countdown{
-  text-align:center;font-size:17px;font-weight:700;margin-top:5px
+
+.sub {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 16px;
 }
-.state{
-  text-align:center;margin-top:8px;font-size:13px;color:#666
+
+.card {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 14px;
+
+  padding: 15px;
+  margin: 12px 0;
 }
-#gate{
-  width:100%;min-height:108px;border:0;border-radius:16px;
-  font-size:24px;font-weight:900;padding:18px;margin-top:12px;
-  touch-action:manipulation;
-  -webkit-tap-highlight-color:transparent;
+
+label {
+  display: block;
+
+  font-size: 13px;
+  font-weight: 700;
+
+  margin-top: 9px;
 }
-#gate.locked{
-  background:#d5d5d8;color:#777;
+
+input,
+select {
+  width: 100%;
+
+  font-size: 16px;
+
+  padding: 12px;
+  margin-top: 4px;
+
+  border: 1px solid #aaa;
+  border-radius: 9px;
+
+  background: #fff;
+  color: #111;
 }
-#gate.ready{
-  background:#1473e6;color:white;
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
 }
-#gate.used{
-  background:#35a853;color:white;
+
+@media (max-width: 560px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
 }
-button.small{
-  width:100%;font-size:15px;font-weight:700;padding:12px;
-  border:1px solid #999;border-radius:10px;background:#fff;color:#111;
-  min-height:46px;margin-top:8px
+
+.clock {
+  font-size: 36px;
+  font-weight: 800;
+
+  text-align: center;
+
+  font-variant-numeric: tabular-nums;
+  letter-spacing: .01em;
 }
-.url{
-  font-size:11px;color:#777;word-break:break-all;margin-top:8px
+
+.countdown {
+  text-align: center;
+
+  font-size: 17px;
+  font-weight: 700;
+
+  margin-top: 5px;
 }
-.note{font-size:12px;color:#666}
-.status{
-  min-height:20px;text-align:center;font-size:13px;font-weight:700;margin-top:8px
+
+.state {
+  text-align: center;
+
+  margin-top: 8px;
+
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.state.disarmed {
+  color: #777;
+}
+
+.state.waiting {
+  color: #1473e6;
+}
+
+.state.go {
+  color: #1a8f3c;
+}
+
+#gate {
+  width: 100%;
+
+  min-height: 108px;
+
+  border: 0;
+  border-radius: 16px;
+
+  font-size: 23px;
+  font-weight: 900;
+
+  padding: 18px;
+  margin-top: 12px;
+
+  touch-action: manipulation;
+
+  -webkit-tap-highlight-color:
+    transparent;
+}
+
+#gate.disarmed {
+  background: #d5d5d8;
+  color: #666;
+}
+
+#gate.waiting {
+  background: #1473e6;
+  color: white;
+}
+
+#gate.go {
+  background: #35a853;
+  color: white;
+}
+
+button.small {
+  width: 100%;
+
+  min-height: 48px;
+
+  font-size: 15px;
+  font-weight: 800;
+
+  padding: 12px;
+
+  border: 1px solid #999;
+  border-radius: 10px;
+
+  background: #fff;
+  color: #111;
+
+  margin-top: 8px;
+
+  touch-action: manipulation;
+}
+
+button.primary {
+  background: #1473e6;
+  color: #fff;
+
+  border-color: #1473e6;
+}
+
+button.stop {
+  background: #fff;
+  color: #b42318;
+
+  border-color: #b42318;
+}
+
+.url {
+  font-size: 11px;
+  color: #777;
+
+  word-break: break-all;
+
+  margin-top: 8px;
+}
+
+.note {
+  font-size: 12px;
+  color: #666;
+}
+
+.status {
+  min-height: 22px;
+
+  text-align: center;
+
+  font-size: 13px;
+  font-weight: 700;
+
+  margin-top: 8px;
+}
+
+.warning {
+  margin-top: 10px;
+
+  padding: 10px;
+
+  border-radius: 9px;
+
+  background: #fff4e5;
+
+  font-size: 12px;
+  color: #7a4700;
+}
+
+.smallText {
+  margin-top: 4px;
+
+  font-size: 11px;
+  color: #777;
+}
+
+.row {
+  display: flex;
+  gap: 8px;
+}
+
+.row > button {
+  flex: 1;
 }
 </style>
 </head>
+
 <body>
 
-<h1>ASOBI TICKET Start Gate v3 MARGIN</h1>
-<div class="sub">設定時刻＋安全マージンに達した瞬間に、指定したASOBI TICKET URLへ自動アクセスします。</div>
+<h1>ASOBI TICKET Start Gate v2</h1>
+
+<div class="sub">
+  設定した時刻に到達した瞬間、
+  ASOBI TICKETへ1回だけ自動アクセスします。
+</div>
 
 <section class="card">
-  <div id="clock" class="clock">--:--:--.---</div>
-  <div id="countdown" class="countdown">開始日時を設定してください</div>
-  <div id="state" class="state">LOCKED</div>
-</section>
 
-<section class="card">
-  <label>開くURL</label>
-  <input id="url" type="url" autocomplete="off"
-    placeholder="https://asobiticket2.asobistore.jp/entry/.../choice?actId=...">
-
-  <div class="grid">
-    <div>
-      <label>開始日</label>
-      <input id="date" type="date">
-    </div>
-    <div>
-      <label>開始時刻</label>
-      <input id="time" type="time" step="0.001" value="12:00:00.000">
-    </div>
+  <div
+    id="clock"
+    class="clock"
+  >
+    --:--:--.---
   </div>
 
-  <label>安全マージン</label>
-  <select id="margin">
-    <option value="0">0 ms（設定時刻ぴったり）</option>
-    <option value="50">+50 ms</option>
-    <option value="100" selected>+100 ms</option>
-    <option value="150">+150 ms</option>
-    <option value="200">+200 ms</option>
-    <option value="300">+300 ms</option>
-    <option value="500">+500 ms</option>
-  </select>
+  <div
+    id="countdown"
+    class="countdown"
+  >
+    設定を確認してください
+  </div>
 
-  <button id="save" class="small" type="button">設定を保存</button>
-  <div id="savedUrl" class="url"></div>
+  <div
+    id="state"
+    class="state disarmed"
+  >
+    DISARMED
+  </div>
+
 </section>
+
 
 <section class="card">
-  <button id="gate" class="locked" type="button" disabled>
-    自動アクセス待機中
+
+  <label>
+    開くURL
+  </label>
+
+  <input
+    id="url"
+    type="url"
+    autocomplete="off"
+    spellcheck="false"
+    placeholder="https://asobiticket2.asobistore.jp/entry/..."
+  >
+
+
+  <div class="grid">
+
+    <div>
+
+      <label>
+        開始日
+      </label>
+
+      <input
+        id="date"
+        type="date"
+      >
+
+    </div>
+
+
+    <div>
+
+      <label>
+        開始時刻
+      </label>
+
+      <input
+        id="time"
+        type="time"
+        step="0.001"
+        value="12:00:00.000"
+      >
+
+    </div>
+
+  </div>
+
+
+  <label>
+    安全マージン
+  </label>
+
+  <select id="margin">
+
+    <option value="0">
+      0 ms（設定時刻ぴったり）
+    </option>
+
+    <option value="50">
+      +50 ms
+    </option>
+
+    <option value="100">
+      +100 ms
+    </option>
+
+    <option value="150">
+      +150 ms
+    </option>
+
+    <option value="200">
+      +200 ms
+    </option>
+
+    <option value="300">
+      +300 ms
+    </option>
+
+    <option value="500">
+      +500 ms
+    </option>
+
+  </select>
+
+  <div class="smallText">
+    +100msなら「設定時刻から100ms後」にアクセスします。
+    端末時刻がサーバーより進んでいる場合の余裕として使えます。
+  </div>
+
+
+  <button
+    id="arm"
+    class="small primary"
+    type="button"
+  >
+    設定を保存して待機開始
   </button>
-  <div id="status" class="status"></div>
+
+
+  <button
+    id="disarm"
+    class="small stop"
+    type="button"
+  >
+    待機を解除
+  </button>
+
+
+  <div
+    id="savedUrl"
+    class="url"
+  >
+  </div>
+
 </section>
+
+
+<section class="card">
+
+  <button
+    id="gate"
+    class="disarmed"
+    type="button"
+    disabled
+  >
+    待機開始されていません
+  </button>
+
+  <div
+    id="status"
+    class="status"
+  >
+  </div>
+
+</section>
+
 
 <section class="card note">
-  <b>動作：</b>開始時刻＋安全マージンまでは待機し、その時刻に達した瞬間に指定URLへ自動遷移します。
-  手動ボタン操作は不要です。自動リロード・申込画面内の自動選択・自動申込は行いません。
-  判定時刻は端末の時計を使用します。安全マージンは設定時刻に加算されます（例：12:00:00.000 ＋100ms → 12:00:00.100）。Safariを前面表示したまま利用してください。
+
+  <b>重要：</b>
+
+  このページを開いただけでは、
+  前回保存したURLへ自動アクセスしません。
+
+  <br><br>
+
+  毎回
+  <b>「設定を保存して待機開始」</b>
+  を押した場合だけ、
+  そのページを開いている間の自動アクセスが有効になります。
+
+  <br><br>
+
+  URL・日付・時刻・安全マージンを変更すると、
+  誤アクセス防止のため自動的に待機解除されます。
+
+  <br><br>
+
+  自動リロード・申込画面内の自動申込・
+  reCAPTCHA操作は行いません。
+
+  <div class="warning">
+    iPhoneではSafariを前面表示した状態で利用してください。
+    バックグラウンドではJavaScriptのタイマーや描画処理が
+    OSによって遅延・停止する場合があります。
+  </div>
+
 </section>
 
+
 <script>
-(function(){
+(function () {
   "use strict";
 
-  const KEY = "asobi_start_gate_v3_margin";
-  const $ = id => document.getElementById(id);
+  /*
+   * ==========================================
+   * STORAGE
+   * ==========================================
+   */
 
-  let targetMs = null;
-  let armed = false;
-  let navigating = false;
-  let lastState = "";
-  let autoTriggered = false;
+  const KEY =
+    "asobi_start_gate_v2";
 
-  function pad(n,w=2){ return String(n).padStart(w,"0"); }
+  const OLD_KEY =
+    "asobi_start_gate_v1";
 
-  function localDateString(d){
+
+  const $ =
+    id =>
+      document.getElementById(id);
+
+
+  /*
+   * armed は絶対にlocalStorageへ保存しない。
+   *
+   * ページを新しく開く / リロードするたびに
+   * falseから開始する。
+   */
+  let armed =
+    false;
+
+  let navigating =
+    false;
+
+  let triggered =
+    false;
+
+  let targetMs =
+    null;
+
+  let effectiveMs =
+    null;
+
+  let lastFrameState =
+    "";
+
+  let armTimestamp =
+    null;
+
+
+  /*
+   * ==========================================
+   * BASIC
+   * ==========================================
+   */
+
+  function pad(
+    n,
+    width = 2
+  ) {
+    return String(n)
+      .padStart(
+        width,
+        "0"
+      );
+  }
+
+
+  function localDateString(d) {
     return [
       d.getFullYear(),
-      pad(d.getMonth()+1),
-      pad(d.getDate())
+      pad(
+        d.getMonth() + 1
+      ),
+      pad(
+        d.getDate()
+      )
     ].join("-");
   }
 
-  function load(){
-    try{
-      let d = JSON.parse(localStorage.getItem(KEY) || "null");
-      if(!d){
-        d = JSON.parse(localStorage.getItem("asobi_start_gate_v1") || "null");
+
+  /*
+   * ==========================================
+   * LOAD
+   * ==========================================
+   */
+
+  function load() {
+
+    let data =
+      null;
+
+    try {
+
+      data =
+        JSON.parse(
+          localStorage.getItem(KEY) ||
+          "null"
+        );
+
+      /*
+       * v1から移行
+       */
+      if (!data) {
+
+        const old =
+          JSON.parse(
+            localStorage.getItem(
+              OLD_KEY
+            ) ||
+            "null"
+          );
+
+        if (old) {
+
+          data = {
+            url:
+              old.url || "",
+
+            date:
+              old.date || "",
+
+            time:
+              old.time ||
+              "12:00:00.000",
+
+            margin:
+              "0"
+          };
+
+        }
+
       }
-      if(d){
-        $("url").value = d.url || "";
-        $("date").value = d.date || "";
-        $("time").value = d.time || "12:00:00.000";
-        $("margin").value = String(d.margin ?? 100);
-        return;
-      }
-    }catch(_){}
 
-    const now = new Date();
-    $("date").value = localDateString(now);
-    $("time").value = "12:00:00.000";
-    $("margin").value = "100";
-  }
+    } catch (_) {}
 
-  function save(){
-    try{
-      localStorage.setItem(KEY, JSON.stringify({
-        url:$("url").value.trim(),
-        date:$("date").value,
-        time:$("time").value,
-        margin:Number($("margin").value || 0)
-      }));
-    }catch(_){}
-  }
 
-  function parseTarget(){
-    const d = $("date").value;
-    let t = $("time").value || "12:00:00.000";
+    if (data) {
 
-    if(!d){
-      targetMs = null;
-      return false;
+      $("url").value =
+        data.url || "";
+
+      $("date").value =
+        data.date || "";
+
+      $("time").value =
+        data.time ||
+        "12:00:00.000";
+
+      $("margin").value =
+        String(
+          data.margin ?? "0"
+        );
+
+    } else {
+
+      const now =
+        new Date();
+
+      $("date").value =
+        localDateString(now);
+
+      $("time").value =
+        "12:00:00.000";
+
+      $("margin").value =
+        "0";
+
     }
 
-    // iOSがミリ秒を落とした場合にも対応
-    if(/^\d{2}:\d{2}$/.test(t)) t += ":00";
-    const x = new Date(d + "T" + t);
+  }
 
-    if(Number.isNaN(x.getTime())){
-      targetMs = null;
+
+  /*
+   * ==========================================
+   * SAVE
+   * ==========================================
+   */
+
+  function save() {
+
+    try {
+
+      localStorage.setItem(
+        KEY,
+        JSON.stringify({
+          url:
+            $("url").value.trim(),
+
+          date:
+            $("date").value,
+
+          time:
+            $("time").value,
+
+          margin:
+            $("margin").value
+        })
+      );
+
+    } catch (_) {}
+
+  }
+
+
+  /*
+   * ==========================================
+   * TARGET TIME
+   * ==========================================
+   */
+
+  function parseTarget() {
+
+    const date =
+      $("date").value;
+
+    let time =
+      $("time").value ||
+      "12:00:00.000";
+
+
+    if (!date) {
+
+      targetMs =
+        null;
+
+      effectiveMs =
+        null;
+
       return false;
+
     }
 
-    const marginMs = Number($("margin").value || 0);
-    targetMs = x.getTime() + marginMs;
+
+    /*
+     * iOS等で秒が省略された場合
+     */
+    if (
+      /^\d{2}:\d{2}$/
+        .test(time)
+    ) {
+
+      time +=
+        ":00";
+
+    }
+
+
+    const d =
+      new Date(
+        date +
+        "T" +
+        time
+      );
+
+
+    if (
+      Number.isNaN(
+        d.getTime()
+      )
+    ) {
+
+      targetMs =
+        null;
+
+      effectiveMs =
+        null;
+
+      return false;
+
+    }
+
+
+    targetMs =
+      d.getTime();
+
+
+    const margin =
+      Number(
+        $("margin").value
+      ) || 0;
+
+
+    effectiveMs =
+      targetMs +
+      margin;
+
+
     return true;
+
   }
 
-  function updateUrlText(){
-    const url = $("url").value.trim() || "URL未設定";
-    const margin = Number($("margin").value || 0);
-    $("savedUrl").textContent = url + " / 安全マージン +" + margin + "ms";
-  }
 
-  function arm(){
-    const gate = $("gate");
+  /*
+   * ==========================================
+   * URL CHECK
+   * ==========================================
+   */
 
-    if(!armed){
-      armed = true;
-      gate.disabled = true;
-      gate.className = "ready";
-      gate.textContent = "自動アクセス開始";
-      $("state").textContent = "GO";
-      $("status").textContent = "開始時刻になりました";
+  function getTargetUrl() {
+
+    const url =
+      $("url").value.trim();
+
+
+    if (
+      !/^https:\/\/asobiticket2\.asobistore\.jp\//i
+        .test(url)
+    ) {
+
+      return null;
+
     }
+
+
+    return url;
+
   }
 
-  function lock(){
-    const gate = $("gate");
-    armed = false;
-    navigating = false;
-    gate.disabled = true;
-    gate.className = "locked";
-    gate.textContent = "自動アクセス待機中";
-    $("state").textContent = "WAITING";
+
+  /*
+   * ==========================================
+   * UI
+   * ==========================================
+   */
+
+  function updateUrlText() {
+
+    const url =
+      $("url").value.trim();
+
+
+    $("savedUrl").textContent =
+      url
+        ? "保存URL: " + url
+        : "URL未設定";
+
   }
 
-  function navigate(){
-    if(navigating || autoTriggered) return;
-    if(!targetMs) return;
 
-    // 実行直前に絶対時刻を再検証
-    if(Date.now() < targetMs) return;
+  function showDisarmed(
+    message = ""
+  ) {
 
-    const url = $("url").value.trim();
-    if(!/^https:\/\/asobiticket2\.asobistore\.jp\//i.test(url)){
-      $("status").textContent = "ASOBI TICKETのURLを設定してください";
+    armed =
+      false;
+
+    navigating =
+      false;
+
+    triggered =
+      false;
+
+    armTimestamp =
+      null;
+
+
+    const gate =
+      $("gate");
+
+
+    gate.className =
+      "disarmed";
+
+    gate.textContent =
+      "待機開始されていません";
+
+    gate.disabled =
+      true;
+
+
+    $("state").className =
+      "state disarmed";
+
+    $("state").textContent =
+      "DISARMED";
+
+
+    if (message) {
+
+      $("status").textContent =
+        message;
+
+    }
+
+  }
+
+
+  function showWaiting() {
+
+    const gate =
+      $("gate");
+
+
+    gate.className =
+      "waiting";
+
+    gate.textContent =
+      "自動アクセス待機中";
+
+    gate.disabled =
+      true;
+
+
+    $("state").className =
+      "state waiting";
+
+    $("state").textContent =
+      "ARMED / WAITING";
+
+  }
+
+
+  function showGo() {
+
+    const gate =
+      $("gate");
+
+
+    gate.className =
+      "go";
+
+    gate.textContent =
+      "アクセス中…";
+
+    gate.disabled =
+      true;
+
+
+    $("state").className =
+      "state go";
+
+    $("state").textContent =
+      "GO";
+
+  }
+
+
+  /*
+   * ==========================================
+   * ARM
+   * ==========================================
+   */
+
+  function arm() {
+
+    /*
+     * URL
+     */
+    const url =
+      getTargetUrl();
+
+
+    if (!url) {
+
+      showDisarmed(
+        "ASOBI TICKETのURLを設定してください"
+      );
+
       return;
+
     }
 
-    navigating = true;
-    autoTriggered = true;
-    const gate = $("gate");
-    gate.disabled = true;
-    gate.className = "used";
-    gate.textContent = "アクセス中…";
-    $("status").textContent = "URLを開きます";
 
-    // ユーザーのクリックイベント内でのみ遷移
-    window.location.assign(url);
-  }
+    /*
+     * 日時
+     */
+    if (!parseTarget()) {
 
+      showDisarmed(
+        "開始日時を確認してください"
+      );
 
-  $("save").addEventListener("click", function(){
-    if(!parseTarget()){
-      $("status").textContent = "開始日時を確認してください";
       return;
+
     }
+
+
+    const now =
+      Date.now();
+
+
+    /*
+     * 過去日時は絶対にARMしない。
+     */
+    if (
+      effectiveMs <= now
+    ) {
+
+      showDisarmed(
+        "開始日時を過ぎています。新しい日時を設定してください"
+      );
+
+      return;
+
+    }
+
 
     save();
-    updateUrlText();
-    autoTriggered = false;
-    navigating = false;
 
-    if(Date.now() < targetMs){
-      lock();
-      $("status").textContent = "設定を保存しました";
-    }else{
-      arm();
-      $("status").textContent = "設定時刻を過ぎています";
-    }
-  });
+    armed =
+      true;
 
-  ["url","date","time","margin"].forEach(id => {
-    $(id).addEventListener("input", function(){
-      parseTarget();
-      save();
-      updateUrlText();
-      autoTriggered = false;
-      navigating = false;
-      if(targetMs && Date.now() >= targetMs) arm();
-      else lock();
-    });
-  });
+    navigating =
+      false;
 
-  function frame(){
-    const now = new Date();
-    const nowMs = now.getTime();
+    triggered =
+      false;
 
-    $("clock").textContent =
-      pad(now.getHours()) + ":" +
-      pad(now.getMinutes()) + ":" +
-      pad(now.getSeconds()) + "." +
-      pad(now.getMilliseconds(),3);
+    armTimestamp =
+      now;
 
-    if(!targetMs){
-      $("countdown").textContent = "開始日時を設定してください";
-      if(lastState !== "none"){
-        lock();
-        lastState = "none";
-      }
-      requestAnimationFrame(frame);
+
+    showWaiting();
+
+
+    const margin =
+      Number(
+        $("margin").value
+      ) || 0;
+
+
+    $("status").textContent =
+      margin === 0
+        ? "待機を開始しました"
+        : "待機を開始しました（+" +
+          margin +
+          "ms）";
+
+  }
+
+
+  /*
+   * ==========================================
+   * NAVIGATE
+   * ==========================================
+   */
+
+  function navigate() {
+
+    /*
+     * 必ずARMされている必要がある。
+     */
+    if (!armed) {
       return;
     }
 
-    const diff = targetMs - nowMs;
 
-    if(diff > 0){
-      if(lastState !== "locked"){
-        lock();
-        lastState = "locked";
-      }
-
-      if(diff < 10000){
-        $("countdown").textContent = "開始まで " + (diff/1000).toFixed(3) + " 秒";
-      }else if(diff < 60000){
-        $("countdown").textContent = "開始まで " + (diff/1000).toFixed(2) + " 秒";
-      }else{
-        const sec = Math.floor(diff/1000);
-        const h = Math.floor(sec/3600);
-        const m = Math.floor((sec%3600)/60);
-        const s = sec%60;
-        $("countdown").textContent =
-          "開始まで " + (h ? h+"時間 " : "") + m+"分 "+s+"秒";
-      }
-    }else{
-      if(lastState !== "ready"){
-        arm();
-        lastState = "ready";
-      }
-      $("countdown").textContent =
-        "開始済み +" + Math.abs(diff/1000).toFixed(3) + " 秒";
-
-      if(!autoTriggered && !navigating){
-        navigate();
-      }
+    if (
+      navigating ||
+      triggered
+    ) {
+      return;
     }
 
-    requestAnimationFrame(frame);
+
+    if (
+      effectiveMs == null
+    ) {
+      return;
+    }
+
+
+    /*
+     * 実行直前の絶対時刻チェック
+     */
+    const now =
+      Date.now();
+
+
+    if (
+      now <
+      effectiveMs
+    ) {
+      return;
+    }
+
+
+    const url =
+      getTargetUrl();
+
+
+    if (!url) {
+
+      showDisarmed(
+        "URLが無効です"
+      );
+
+      return;
+
+    }
+
+
+    /*
+     * ページを開いた直後に
+     * 古い設定で発動することを防ぐ追加ガード。
+     */
+    if (
+      armTimestamp == null
+    ) {
+
+      showDisarmed(
+        "待機開始操作が確認できません"
+      );
+
+      return;
+
+    }
+
+
+    navigating =
+      true;
+
+    triggered =
+      true;
+
+    armed =
+      false;
+
+
+    showGo();
+
+
+    $("countdown").textContent =
+      "アクセス開始";
+
+
+    $("status").textContent =
+      "ASOBI TICKETを開きます";
+
+
+    /*
+     * 1回だけ遷移
+     */
+    window.location.assign(
+      url
+    );
+
   }
 
+
+  /*
+   * ==========================================
+   * BUTTON EVENTS
+   * ==========================================
+   */
+
+  $("arm")
+    .addEventListener(
+      "click",
+      function () {
+
+        arm();
+
+      }
+    );
+
+
+  $("disarm")
+    .addEventListener(
+      "click",
+      function () {
+
+        showDisarmed(
+          "待機を解除しました"
+        );
+
+      }
+    );
+
+
+  /*
+   * ==========================================
+   * INPUT CHANGE
+   *
+   * 変更した瞬間にARM解除。
+   * ==========================================
+   */
+
+  [
+    "url",
+    "date",
+    "time",
+    "margin"
+  ].forEach(
+    id => {
+
+      $(id)
+        .addEventListener(
+          "input",
+          function () {
+
+            parseTarget();
+
+            save();
+
+            updateUrlText();
+
+
+            if (armed) {
+
+              showDisarmed(
+                "設定が変更されたため待機を解除しました。再度「待機開始」を押してください"
+              );
+
+            }
+
+          }
+        );
+
+    }
+  );
+
+
+  /*
+   * ==========================================
+   * COUNTDOWN
+   * ==========================================
+   */
+
+  function formatCountdown(diff) {
+
+    if (
+      diff < 10000
+    ) {
+
+      return (
+        "開始まで " +
+        (diff / 1000)
+          .toFixed(3) +
+        " 秒"
+      );
+
+    }
+
+
+    if (
+      diff < 60000
+    ) {
+
+      return (
+        "開始まで " +
+        (diff / 1000)
+          .toFixed(2) +
+        " 秒"
+      );
+
+    }
+
+
+    const sec =
+      Math.floor(
+        diff / 1000
+      );
+
+
+    const h =
+      Math.floor(
+        sec / 3600
+      );
+
+
+    const m =
+      Math.floor(
+        (
+          sec % 3600
+        ) / 60
+      );
+
+
+    const s =
+      sec % 60;
+
+
+    return (
+      "開始まで " +
+      (
+        h
+          ? h +
+            "時間 "
+          : ""
+      ) +
+      m +
+      "分 " +
+      s +
+      "秒"
+    );
+
+  }
+
+
+  /*
+   * ==========================================
+   * MAIN LOOP
+   * ==========================================
+   */
+
+  function frame() {
+
+    const nowDate =
+      new Date();
+
+    const nowMs =
+      nowDate.getTime();
+
+
+    /*
+     * 時計
+     */
+    $("clock").textContent =
+      pad(
+        nowDate.getHours()
+      ) +
+      ":" +
+      pad(
+        nowDate.getMinutes()
+      ) +
+      ":" +
+      pad(
+        nowDate.getSeconds()
+      ) +
+      "." +
+      pad(
+        nowDate.getMilliseconds(),
+        3
+      );
+
+
+    /*
+     * 日時未設定
+     */
+    if (
+      effectiveMs == null
+    ) {
+
+      $("countdown").textContent =
+        "開始日時を設定してください";
+
+
+      requestAnimationFrame(
+        frame
+      );
+
+      return;
+
+    }
+
+
+    const diff =
+      effectiveMs -
+      nowMs;
+
+
+    /*
+     * ARMされていない
+     */
+    if (!armed) {
+
+      if (
+        diff > 0
+      ) {
+
+        $("countdown").textContent =
+          formatCountdown(
+            diff
+          ) +
+          "（待機未開始）";
+
+      } else {
+
+        $("countdown").textContent =
+          "設定時刻を過ぎています";
+
+      }
+
+
+      requestAnimationFrame(
+        frame
+      );
+
+      return;
+
+    }
+
+
+    /*
+     * ARM中
+     */
+    if (
+      diff > 0
+    ) {
+
+      if (
+        lastFrameState !==
+        "waiting"
+      ) {
+
+        showWaiting();
+
+        lastFrameState =
+          "waiting";
+
+      }
+
+
+      $("countdown").textContent =
+        formatCountdown(
+          diff
+        );
+
+    } else {
+
+      /*
+       * 到達
+       */
+      lastFrameState =
+        "go";
+
+
+      $("countdown").textContent =
+        "開始時刻 +" +
+        Math.abs(
+          diff / 1000
+        ).toFixed(3) +
+        " 秒";
+
+
+      navigate();
+
+    }
+
+
+    requestAnimationFrame(
+      frame
+    );
+
+  }
+
+
+  /*
+   * ==========================================
+   * VISIBILITY
+   *
+   * 前面復帰時にも即チェック。
+   * ==========================================
+   */
+
+  document.addEventListener(
+    "visibilitychange",
+    function () {
+
+      if (
+        document.visibilityState ===
+        "visible" &&
+        armed &&
+        effectiveMs != null &&
+        Date.now() >=
+          effectiveMs
+      ) {
+
+        navigate();
+
+      }
+
+    }
+  );
+
+
+  /*
+   * ==========================================
+   * INIT
+   * ==========================================
+   */
+
   load();
+
   parseTarget();
+
   updateUrlText();
 
-  if(targetMs && Date.now() >= targetMs) arm();
-  else lock();
 
-  requestAnimationFrame(frame);
+  /*
+   * 最重要:
+   *
+   * ページを開いた時点では
+   * ALWAYS DISARMED。
+   *
+   * 保存されている開始日時が
+   * 未来でも過去でも関係なく、
+   * 勝手に遷移させない。
+   */
+  showDisarmed(
+    "前回設定を読み込みました。内容を確認して「設定を保存して待機開始」を押してください"
+  );
+
+
+  requestAnimationFrame(
+    frame
+  );
+
 })();
 </script>
 
